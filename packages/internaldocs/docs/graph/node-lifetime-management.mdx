@@ -1,0 +1,16 @@
+---
+sidebar_position: 3
+sidebar_custom_props:
+  tags:
+    - plan
+    - wip
+---
+
+# Node lifetime managemnt
+
+## Rationale
+A node is consisted of multiple parts that live in multiple layers of the graph architecture. Each part has different requirements for the lifetime. At the same time the process of creation and destruction needs to be coordinated properly.
+
+For example, lifetime of `AudioNodeHostObject` is directly tied to the lifetime of a corresponding JS object. When it is removed by a garbage collector, its destructor marks the `AudioGraph::Node` as `orphaned`. When it is the right time, the `AudioGraph::Node` may be removed from `AudioGraph`. Once it is removed, the removal of `HostGraph::Node`, `NodeHandle` and finally `AudioNode` are scheduled. This process is necessary, so that both the audio and host graph processes as well as the audio pipeline may finish their tasks gracefully.
+
+The implementation currently isn't well scalable. One can imagine that a node would acquire more responsibilities and more objects with specific lifetime requirements. Also, the process of communication between nodes isn't unified: Sometimes it is scheduling
